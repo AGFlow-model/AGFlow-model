@@ -93,3 +93,14 @@ AGFlow also supports **query-time generation**:
 - [ ] Add demo notebook for anytime querying
 
 ---
+## ✉️ Contact & Acknowledgments
+
+- **Contact:** ffallah@asu.edu
+
+### Acknowledgments
+
+This research is supported in part by **Google.org’s Impact Challenge for Climate Innovation Program** and the **National Science Foundation under award 2120943**.
+
+We also thank **Research Computing (RC) at Arizona State University** for their support in providing computing resources.
+
+We further thank the authors of <a href="https://github.com/SQD1/RESTORE-DiT">RESTORE-DiT</a> and <a href="https://github.com/tangkai-RS/AnytimeFormer">AnytimeFormer</a> for their valuable prior work on satellite time-series reconstruction, asynchronous fusion, and anytime querying.
