@@ -59,8 +59,6 @@ AGFlow uses a **Sequential Denoising Transformer (SDT)** with:
 - **Relative temporal bias + real-date encoding** for irregular-time modeling
 - **Unified masking formulation** for both partial inpainting and full-frame generation
 
-This lets the model preserve observed pixels while generating only the missing content.
-
 ---
 
 ## 🛰️ Dataset & Setup
@@ -69,52 +67,11 @@ This lets the model preserve observed pixels while generating only the missing c
 - **Condition sensor:** Sentinel-1 SAR time series
 - **Benchmark:** RESTORE-DiT evaluation protocol
 - **Region:** France site from **PASTIS-R**
-- **Patch size:** `128 x 128`
-- **Temporal span:** **Sep 2018 – Nov 2019**
 - **S2 observations:** **38–61 acquisitions per series**
 - **S1 observations:** about **70 acquisitions per series**
-- **Window length:** `15`
-
-Preprocessing used in the paper:
-
-- Sentinel-2 clipped to a fixed reflectance range
-- Sentinel-1 standardized with dataset statistics
-- Real cloud masks sampled from the benchmark mask pool
 
 ---
 
-## 📊 Main Results
-
-### Missing-frame reconstruction
-
-| Model | MAE ↓ | RMSE ↓ | SAM ↓ | PSNR ↑ | SSIM ↑ |
-|------|------:|------:|------:|------:|------:|
-| RESTORE-DiT | 0.0214 | 0.0322 | 2.9514 | 32.1755 | 0.9139 |
-| **AGFlow** | **0.0179** | **0.0261** | **2.7761** | **32.8671** | **0.9420** |
-
-### Cloud removal
-
-| Model | MAE ↓ | RMSE ↓ | SAM ↓ | PSNR ↑ | SSIM ↑ |
-|------|------:|------:|------:|------:|------:|
-| Linear | 0.0257 | 0.0401 | 4.35 | 28.40 | 0.929 |
-| U-TILISE | 0.0202 | 0.0314 | 3.76 | 30.38 | 0.936 |
-| U-TILISE-SAR | 0.0193 | 0.0298 | 3.66 | 30.77 | 0.937 |
-| RESTORE-DiT | 0.0140 | 0.0224 | 2.64 | 33.32 | 0.959 |
-| **AGFlow** | **0.0133** | **0.0217** | **2.45** | **33.65** | **0.964** |
-
----
-
-## 🔍 Ablation Highlights
-
-The paper shows that AGFlow performs best when all parts are used together:
-
-- Removing **time-aligned SAR fusion** causes the largest drop
-- Removing **relative time bias** also hurts performance
-- Removing **query-relative timing** gives a smaller but still consistent drop
-
-This supports that **temporal alignment inside the model** is important for both fidelity and spectral consistency.
-
----
 
 ## 🌱 Anytime Generation
 
@@ -131,28 +88,8 @@ AGFlow also supports **query-time generation**:
 - [ ] Release training code
 - [ ] Release evaluation scripts
 - [ ] Upload pretrained checkpoints
-- [ ] Add data preparation instructions
 - [ ] Publish model card and usage notes
 - [ ] Provide reproducibility environment file
 - [ ] Add demo notebook for anytime querying
 
 ---
-
-## ⚠️ Limitations
-
-- Assumes good spatial co-registration between Sentinel-1 and Sentinel-2
-- Uses fixed-length temporal windows, so very long dependencies may be only partly captured
-- May require retraining or calibration for other sensors, regions, or processing conventions
-
----
-
-## 📝 Citation
-
-If you find this work useful, please cite:
-
-```bibtex
-@article{fallah2026agflow,
-  title   = {Asynchronous Remote Sensing Time-Series Fusion for Cloud Removal and Anytime Reconstruction},
-  author  = {Fallah, Forouzan and Hsu, Chia-Yu and Li, Wenwen and Liljedahl, Anna and Yang, Yezhou},
-  year    = {2026}
-}
