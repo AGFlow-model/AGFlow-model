@@ -98,7 +98,7 @@ AGFlow also supports **query-time generation**:
 ---
 ## ✉️ Contact & Acknowledgments
 
-- **Contact:** wewnwen@asu.edu
+- **Contact:** wenwen@asu.edu
 
 ### Acknowledgments
 
