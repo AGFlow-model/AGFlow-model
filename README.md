@@ -107,3 +107,16 @@ This research is supported in part by **Google.org’s Impact Challenge for Clim
 We also thank **Research Computing (RC) at Arizona State University** for their support in providing computing resources.
 
 We further thank the authors of <a href="https://github.com/SQD1/RESTORE-DiT">RESTORE-DiT</a> and <a href="https://github.com/tangkai-RS/AnytimeFormer">AnytimeFormer</a> for their valuable prior work on satellite time-series reconstruction, asynchronous fusion, and anytime querying.
+
+## 📖 Citation
+
+If you find AGFlow useful in your research, please cite:
+
+```bibtex
+@inproceedings{fallah2026asynchronous,
+  title={Asynchronous Remote Sensing Time-Series Fusion for Cloud Removal and Anytime Reconstruction},
+  author={Fallah, Forouzan and Hsu, Chia-Yu and Li, Wenwen and Liljedahl, Anna and Yang, Yezhou},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops},
+  pages={7772--7780},
+  year={2026}
+}
