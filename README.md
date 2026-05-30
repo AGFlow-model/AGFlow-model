@@ -1,12 +1,14 @@
 # ☁️ AGFlow: Asynchronous Remote Sensing Time-Series Fusion for Cloud Removal and Anytime Reconstruction
 
 <p align="left">
-  <!-- Optional: replace with your real links -->
-  <a href=" ">
-    <img alt="Project page" src="https://img.shields.io/badge/Project%20page-visit-blue">
+  <a href="https://agflow-model.github.io/">
+    <img alt="Project Page" src="https://img.shields.io/badge/Project%20Page-Visit-blue">
   </a>
-  <a href=" ">
-    <img alt="Paper" src="https://img.shields.io/badge/Paper-PDF-B31B1B">
+  <a href="https://arxiv.org/abs/2605.27726">
+    <img alt="arXiv" src="https://img.shields.io/badge/arXiv-2605.27726-B31B1B">
+  </a>
+  <a href="https://openaccess.thecvf.com/content/CVPR2026W/MORSE/html/Fallah_Asynchronous_Remote_Sensing_Time-Series_Fusion_for_Cloud_Removal_and_Anytime_CVPRW_2026_paper.html">
+    <img alt="CVPRW 2026" src="https://img.shields.io/badge/CVPRW-2026-4B44CE">
   </a>
   <img alt="Task" src="https://img.shields.io/badge/task-cloud_removal%20%2B%20anytime_reconstruction-0a7ea4">
   <img alt="Sensors" src="https://img.shields.io/badge/Sensors-Sentinel--1%20%2F%20Sentinel--2-4c9f70">
@@ -20,8 +22,9 @@
 ---
 
 ## 🗞️ News
+🎉 AGFlow is accepted to CVPR 2026 MORSE Workshop.
 - **TBA** — code and pretrained weights release.
-- **TBA** — project page and demo.
+
 
 ---
 
