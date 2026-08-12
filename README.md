@@ -23,8 +23,7 @@
 
 ## 🗞️ News
 🎉 AGFlow is accepted to CVPR 2026 MORSE Workshop.
-- **TBA** — code and pretrained weights release.
-
+- **2026-08** — Training code, evaluation scripts, and the pretrained AGFlow checkpoint are released.
 
 ---
 
@@ -64,17 +63,149 @@ AGFlow uses a **Sequential Denoising Transformer (SDT)** with:
 
 ---
 
-## 🛰️ Dataset & Setup
+## 📁 Repository Structure
 
-- **Target sensor:** Sentinel-2 optical time series
-- **Condition sensor:** Sentinel-1 SAR time series
-- **Benchmark:** RESTORE-DiT evaluation protocol
-- **Region:** France site from **PASTIS-R**
-- **S2 observations:** **38–61 acquisitions per series**
-- **S1 observations:** about **70 acquisitions per series**
+```
+AGFlow/
+├── run_train_anytime_v4_flow.py   # Training entry point (flow matching)
+├── run_eval.py                    # Evaluation entry point
+├── run_eval_parallel.sh           # Parallel evaluation over patches
+├── FlowMatchingScheduler.py       # Linear flow matching: x_t = (1−t)·x₀ + t·ε,  v = ε − x₀
+├── SeqFlowPipeline.py             # Euler ODE sampling with observed-pixel clamping
+├── explore_anytime_pt_free.py     # Anytime generation demo / visualization
+├── requirements.txt
+├── configs/
+│   ├── config_PASTIS_anytime_train_flow.yaml   # Training config (paper settings)
+│   ├── config_paper_run_exact.yaml             # Exact auto-saved config of the paper run
+│   └── default_train.yaml                      # Defaults (merged with the above)
+└── lib/
+    ├── models/SDT_4.py            # Sequential Denoising Transformer
+    │                              #   • Time-Aligned Cross-Attention (spatial + temporal)
+    │                              #   • Learned relative-time bias (bucketed day differences)
+    │                              #   • RoPE over real acquisition dates
+    │                              #   • Absolute + query-relative date embeddings
+    ├── trainer_anytime_v4_flow.py # Flow-matching trainer (masked-pixel MSE loss)
+    ├── eval_tools_flow.py         # Imputation / evaluation with flow sampling
+    ├── datasets/PASTISDataset.py  # PASTIS-R data loading
+    └── metrics.py                 # MAE / RMSE / SAM / PSNR / SSIM (masked)
+```
 
 ---
 
+## 🔧 Installation
+
+```bash
+git clone https://github.com/AGFlow-model/AGFlow.git
+cd AGFlow
+conda create -n agflow python=3.10 -y
+conda activate agflow
+pip install -r requirements.txt
+```
+
+Tested with Python 3.10 and PyTorch ≥ 2.0 (CUDA).
+
+---
+
+## 🛰️ Dataset & Setup
+
+- **Target sensor:** Sentinel-2 optical time series (10 spectral bands, atmospheric bands excluded)
+- **Condition sensor:** Sentinel-1 SAR time series (VV, VH, VV/VH; ascending orbit)
+- **Benchmark:** RESTORE-DiT evaluation protocol
+- **Region:** France site from **PASTIS-R** (tiles 30UXV, 32ULU, 31TFM, 31TFJ; 2433 patches of 128×128 px)
+- **S2 observations:** **38–61 acquisitions per series**
+- **S1 observations:** about **70 acquisitions per series**
+
+**Setup steps:**
+
+1. Download **PASTIS-R** from the [official repository](https://github.com/VSainteuf/pastis-benchmark).
+2. Point the config to your data location:
+
+```yaml
+# configs/config_PASTIS_anytime_train_flow.yaml
+data:
+    root: /path/to/PASTIS-R
+```
+
+We use the official 5-fold split (four folds for training, one for testing).
+
+---
+
+## 📦 Pretrained Models
+
+| Model | Task | MAE ↓ | RMSE ↓ | Download |
+|---|---|---|---|---|
+| AGFlow (full) | Missing-frame reconstruction | 0.0179 | 0.0261 | 👉 [LINK] |
+| AGFlow (full) | Cloud removal | 0.0133 | 0.0217 | *(same checkpoint)* |
+
+```bash
+mkdir -p checkpoints
+# download AGFlow_full_best.pth into ./checkpoints/
+md5sum checkpoints/AGFlow_full_best.pth
+# expected: 35407ee6323c7d5d56bef4d3dc82dae8
+```
+
+---
+
+## 🚀 Training
+
+```bash
+python run_train_anytime_v4_flow.py configs/config_PASTIS_anytime_train_flow.yaml
+```
+
+Paper settings (Sec. 4.2): SDT with depth 4, hidden size 256, patch size 4×4, 4 attention heads, MLP ratio 4.0, temporal window T = 15, 128×128 crops; Adam (lr 2×10⁻⁴), batch size 16, 3000 epochs, MultiStepLR schedule. Training uses flow matching with τ ~ U(0,1), linear interpolation y_τ = (1−τ)y + τε, and target velocity ε − y, with the loss computed on masked pixels only.
+
+Weights & Biases logging is on by default (`--wandb_project` to change the project name).
+
+---
+
+## 📊 Evaluation
+
+**Cloud removal / missing-frame reconstruction:**
+
+```bash
+python run_eval.py \
+    --config configs/config_paper_run_exact.yaml \
+    --checkpoint ./checkpoints/AGFlow_full_best.pth \
+    --inference_steps 50 \
+    --out_dir ./eval_outputs
+```
+
+**Anytime generation at a user-specified date:**
+
+```bash
+python run_eval.py \
+    --config configs/config_paper_run_exact.yaml \
+    --checkpoint ./checkpoints/AGFlow_full_best.pth \
+    --task_mode anytime_nn \
+    --target_date 2019-05-29 \
+    --reference_date 2018-09-01 \
+    --inference_steps 50
+```
+
+For evaluating many patches in parallel, see `run_eval_parallel.sh`. Metrics (MAE, RMSE, SAM, PSNR, SSIM) are computed on missing/occluded pixels only, following the RESTORE-DiT protocol.
+
+---
+
+## 📈 Results
+
+**Missing-frame (gap filling) reconstruction** — one S2 frame fully removed and reconstructed from the remaining temporal context:
+
+| Model | MAE ↓ | RMSE ↓ | SAM ↓ | PSNR ↑ | SSIM ↑ |
+|---|---|---|---|---|---|
+| RESTORE-DiT | 0.0214 | 0.0322 | 2.95 | 32.17 | 0.914 |
+| **AGFlow (full)** | **0.0179** | **0.0261** | **2.78** | **32.87** | **0.942** |
+
+**Cloud removal** — France test set, metrics over all ten S2 bands on cloud-corrupted pixels:
+
+| Method | MAE ↓ | RMSE ↓ | SAM ↓ | PSNR ↑ | SSIM ↑ |
+|---|---|---|---|---|---|
+| Linear | 0.0257 | 0.0401 | 4.35 | 28.40 | 0.929 |
+| U-TILISE | 0.0202 | 0.0314 | 3.76 | 30.38 | 0.936 |
+| U-TILISE-SAR | 0.0193 | 0.0298 | 3.66 | 30.77 | 0.937 |
+| RESTORE-DiT | 0.0140 | 0.0224 | 2.64 | 33.32 | 0.959 |
+| **AGFlow (ours)** | **0.0133** | **0.0217** | **2.45** | **33.65** | **0.964** |
+
+---
 
 ## 🌱 Anytime Generation
 
@@ -84,25 +215,34 @@ AGFlow also supports **query-time generation**:
 - The paper evaluates this using **NDVI trend agreement** against an auxiliary cloud-free reference from **RapidAI4EO**
 - The goal is not exact pixel matching, but **plausible seasonal dynamics and regional consistency**
 
+A visualization example is provided in `explore_anytime_pt_free.py` (sample outputs in `explored/`).
+
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Release training code
-- [ ] Release evaluation scripts
-- [ ] Upload pretrained checkpoints
+- [x] Release training code
+- [x] Release evaluation scripts
+- [x] Upload pretrained checkpoints
+- [x] Provide reproducibility environment file
 - [ ] Publish model card and usage notes
-- [ ] Provide reproducibility environment file
 - [ ] Add demo notebook for anytime querying
 
 ---
+
+## ⚖️ License
+
+This project is released under the [MIT License](./LICENSE).
+
+---
+
 ## ✉️ Contact & Acknowledgments
 
 - **Contact:** wenwen@asu.edu
 
 ### Acknowledgments
 
-This research is supported in part by **Google.org’s Impact Challenge for Climate Innovation Program** and the **National Science Foundation under award 2120943**.
+This research is supported in part by **Google.org's Impact Challenge for Climate Innovation Program** and the **National Science Foundation under award 2120943**.
 
 We also thank **Research Computing (RC) at Arizona State University** for their support in providing computing resources.
 
@@ -114,9 +254,10 @@ If you find AGFlow useful in your research, please cite:
 
 ```bibtex
 @inproceedings{fallah2026asynchronous,
-  title={Asynchronous Remote Sensing Time-Series Fusion for Cloud Removal and Anytime Reconstruction},
+  title={Asynchronous remote sensing time-series fusion for cloud removal and anytime reconstruction},
   author={Fallah, Forouzan and Hsu, Chia-Yu and Li, Wenwen and Liljedahl, Anna and Yang, Yezhou},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
   pages={7772--7780},
   year={2026}
 }
+```
