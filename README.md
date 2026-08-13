@@ -63,34 +63,6 @@ AGFlow uses a **Sequential Denoising Transformer (SDT)** with:
 
 ---
 
-## 📁 Repository Structure
-
-```
-AGFlow/
-├── run_train_anytime_v4_flow.py   # Training entry point (flow matching)
-├── run_eval.py                    # Evaluation entry point
-├── run_eval_parallel.sh           # Parallel evaluation over patches
-├── FlowMatchingScheduler.py       # Linear flow matching: x_t = (1−t)·x₀ + t·ε,  v = ε − x₀
-├── SeqFlowPipeline.py             # Euler ODE sampling with observed-pixel clamping
-├── explore_anytime_pt_free.py     # Anytime generation demo / visualization
-├── requirements.txt
-├── configs/
-│   ├── config_PASTIS_anytime_train_flow.yaml   # Training config (paper settings)
-│   ├── config_paper_run_exact.yaml             # Exact auto-saved config of the paper run
-│   └── default_train.yaml                      # Defaults (merged with the above)
-└── lib/
-    ├── models/SDT_4.py            # Sequential Denoising Transformer
-    │                              #   • Time-Aligned Cross-Attention (spatial + temporal)
-    │                              #   • Learned relative-time bias (bucketed day differences)
-    │                              #   • RoPE over real acquisition dates
-    │                              #   • Absolute + query-relative date embeddings
-    ├── trainer_anytime_v4_flow.py # Flow-matching trainer (masked-pixel MSE loss)
-    ├── eval_tools_flow.py         # Imputation / evaluation with flow sampling
-    ├── datasets/PASTISDataset.py  # PASTIS-R data loading
-    └── metrics.py                 # MAE / RMSE / SAM / PSNR / SSIM (masked)
-```
-
----
 
 ## 🔧 Installation
 
